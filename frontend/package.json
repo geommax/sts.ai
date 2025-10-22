@@ -1,0 +1,13 @@
+{
+  "name": "conversational-ai-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the three-tier Conversational AI system",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["conversational-ai", "frontend", "speech-to-speech", "text-to-text"],
+  "author": "STS.AI Team",
+  "license": "MIT"
+}
