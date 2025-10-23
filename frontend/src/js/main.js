@@ -186,11 +186,39 @@ function updateLatencyDisplay(totalTime = 0, sttTime = 0, llmTime = 0, ttsTime =
 }
 
 // Add a message to the chat container
-function addMessage(text, isUser = false) {
+function addMessage(text, isUser = false, llmTime = 0, timestamp = null) {
     // Remove the placeholder message if it's the first message
     const placeholder = chatContainer.querySelector('.text-gray-500');
     if (placeholder) {
         placeholder.remove();
+    }
+    
+    // Use current time if no timestamp provided
+    const messageTimestamp = timestamp || new Date();
+    
+    // Format timestamp for display
+    const formattedTime = messageTimestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    // Create message content with timing information
+    let messageContent = `<div class="${isUser ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}">${text}</div>`;
+    
+    // Add timing information for user messages (send time) and assistant messages (response time and inference duration)
+    if (isUser) {
+        messageContent += `
+        <div class="text-xs mt-1 ${isUser ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}">
+            Sent at ${formattedTime}
+        </div>`;
+    } else {
+        // For assistant messages, include response time and inference duration
+        messageContent += `
+        <div class="text-xs mt-1 ${isUser ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}">
+            Responded at ${formattedTime}`;
+        
+        if (llmTime > 0) {
+            messageContent += ` • Inference: ${formatTime(llmTime)}`;
+        }
+        messageContent += `
+        </div>`;
     }
     
     const messageDiv = document.createElement('div');
@@ -204,9 +232,7 @@ function addMessage(text, isUser = false) {
                 <div class="font-medium text-sm ${isUser ? 'text-blue-800 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'}">
                     ${isUser ? 'You' : 'Assistant'}
                 </div>
-                <div class="${isUser ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}">
-                    ${text}
-                </div>
+                ${messageContent}
             </div>
         </div>
     `;
@@ -217,7 +243,8 @@ function addMessage(text, isUser = false) {
     conversationHistory.push({
         role: isUser ? 'user' : 'assistant',
         content: text,
-        timestamp: new Date().toISOString()
+        timestamp: messageTimestamp.toISOString(),
+        llmTime: llmTime
     });
 }
 
@@ -272,8 +299,8 @@ async function handleTextMessage() {
     const text = userInput.value.trim();
     if (!text) return;
     
-    // Add user message to chat
-    addMessage(text, true);
+    // Add user message to chat with timestamp
+    addMessage(text, true, 0, new Date());
     userInput.value = '';
     
     // Show typing indicator
@@ -286,9 +313,9 @@ async function handleTextMessage() {
     const totalTime = Date.now() - interactionStartTime;
     updateLatencyDisplay(totalTime, 0, result.llmTime, 0);
     
-    // Remove typing indicator and add AI response
+    // Remove typing indicator and add AI response with timing info
     removeTypingIndicator();
-    addMessage(result.response, false);
+    addMessage(result.response, false, result.llmTime);
 }
 
 // Show typing indicator
@@ -348,7 +375,16 @@ function exportChat() {
         conversationHistory.forEach(msg => {
             const role = msg.role === 'user' ? 'You' : 'Assistant';
             const timestamp = new Date(msg.timestamp).toLocaleString();
-            textContent += `[${timestamp}] ${role}: ${msg.content}\n\n`;
+            
+            // Add timing information
+            if (msg.role === 'user') {
+                textContent += `[${timestamp}] ${role}: ${msg.content}\n`;
+            } else {
+                // For assistant messages, include inference time if available
+                const inferenceInfo = msg.llmTime ? ` (Inference: ${formatTime(msg.llmTime)})` : '';
+                textContent += `[${timestamp}] ${role}: ${msg.content}${inferenceInfo}\n`;
+            }
+            textContent += '\n';
         });
         content = textContent;
         filename = 'chat-history.txt';
