@@ -227,30 +227,40 @@ async function sendToLLM(text) {
         // Start LLM timing
         llmStartTime = Date.now();
         
-        const response = await fetch(`${LLM_BACKEND_URL}/generate`, {
+        // Send to backend01-stt-tts instead of directly to backend02-llm
+        console.log('Sending request to backend01-stt-tts');
+        const response = await fetch(`${STT_TTS_BACKEND_URL}/chat/text`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ prompt: text })
+            body: JSON.stringify({ 
+                message: text,
+                user_id: userId
+            })
         });
         
+        console.log('Received response from backend01-stt-tts:', response);
         const data = await response.json();
+        console.log('Parsed JSON data:', data);
         
         // Calculate LLM latency
         const llmTime = Date.now() - llmStartTime;
         
+        let actualLlmTime = 0;
         // Update latency from backend if provided
         if (data.latency && data.latency.processing) {
+            actualLlmTime = data.latency.processing;
             updateLatencyDisplay(0, 0, data.latency.processing, 0);
         } else {
+            actualLlmTime = llmTime;
             updateLatencyDisplay(0, 0, llmTime, 0);
         }
         
-        return data.response;
+        return { response: data.response, llmTime: actualLlmTime };
     } catch (error) {
         console.error('Error sending to LLM:', error);
-        return "Sorry, I encountered an error processing your request.";
+        return { response: "Sorry, I encountered an error processing your request.", llmTime: 0 };
     }
 }
 
@@ -270,15 +280,15 @@ async function handleTextMessage() {
     showTypingIndicator();
     
     // Get response from LLM
-    const response = await sendToLLM(text);
+    const result = await sendToLLM(text);
     
     // Calculate total interaction time
     const totalTime = Date.now() - interactionStartTime;
-    updateLatencyDisplay(totalTime, 0, 0, 0);
+    updateLatencyDisplay(totalTime, 0, result.llmTime, 0);
     
     // Remove typing indicator and add AI response
     removeTypingIndicator();
-    addMessage(response, false);
+    addMessage(result.response, false);
 }
 
 // Show typing indicator

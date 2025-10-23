@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import uuid
 from datetime import datetime
 import time
+import requests
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # In-memory storage for chat history (in production, use a database)
 chat_history = {}
@@ -24,8 +27,26 @@ def handle_text_chat():
         if not message:
             return jsonify({"error": "Message is required"}), 400
             
-        # Process text (placeholder for actual implementation)
-        response_text = f"Echo: {message}"  # Placeholder response
+        # Forward text to LLM backend (backend02-llm)
+        llm_latency = 0
+        try:
+            llm_response = requests.post('http://localhost:5002/generate', 
+                                       json={'prompt': message}, 
+                                       timeout=30)
+            
+            if llm_response.status_code == 200:
+                llm_data = llm_response.json()
+                response_text = llm_data.get('response', '')
+                # Extract latency information from LLM response
+                if 'latency' in llm_data and 'processing' in llm_data['latency']:
+                    llm_latency = llm_data['latency']['processing']
+            else:
+                # If LLM backend returns an error, we still want to show a response
+                response_text = "Error: Unable to get response from LLM backend"
+        except Exception as e:
+            print(f"Error calling LLM backend: {e}")
+            # If there's a network error, we still want to show a response
+            response_text = "Error: Unable to connect to LLM backend"
         
         # Store in chat history
         store_chat_message(user_id, "user", message)
@@ -34,7 +55,10 @@ def handle_text_chat():
         return jsonify({
             "status": "success",
             "response": response_text,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "latency": {
+                "processing": llm_latency
+            }
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
