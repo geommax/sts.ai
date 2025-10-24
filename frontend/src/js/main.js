@@ -8,6 +8,7 @@ const assistantWaveformSvg = document.getElementById('assistant-waveform-svg');
 const userAudioLevel = document.getElementById('user-audio-level');
 const assistantAudioLevel = document.getElementById('assistant-audio-level');
 const sttStatus = document.getElementById('stt-status');
+// Removed realtimeToggleBtn since we're removing streaming functionality
 
 // DOM Elements - Chat
 const chatContainer = document.getElementById('chat-container');
@@ -61,6 +62,8 @@ let ttsStartTime = 0;
 // Conversation history
 let conversationHistory = [];
 
+// Removed isRealtimeMode variable since we're removing streaming functionality
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners
@@ -77,6 +80,7 @@ function addEventListeners() {
     // Speech to Speech events
     speechToggleBtn.addEventListener('click', toggleRecording);
     stopAiVoiceBtn.addEventListener('click', stopAiVoice);
+    // Removed realtimeToggleBtn event listener
     
     // Chat events
     sendBtn.addEventListener('click', handleTextMessage);
@@ -408,10 +412,16 @@ function exportChat() {
 
 // Initialize Audio Context and Analyser
 function setupAudioContext() {
+    // Clean up existing audio context if it's in a bad state
+    if (audioContext && audioContext.state === 'closed') {
+        audioContext = null;
+    }
+    
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
     
+    // Clean up existing analyser if needed
     if (!userAnalyser) {
         userAnalyser = audioContext.createAnalyser();
         userAnalyser.fftSize = 1024;
@@ -424,15 +434,56 @@ function setupAudioContext() {
 // Request microphone access
 async function requestMicrophoneAccess() {
     try {
+        // First, ensure any existing resources are properly cleaned up
+        if (mediaStream) {
+            const tracks = mediaStream.getTracks();
+            tracks.forEach(track => {
+                try {
+                    track.stop();
+                } catch (e) {
+                    console.warn('Error stopping track:', e);
+                }
+            });
+            mediaStream = null;
+        }
+        
+        // Clean up existing audio context if it's in a bad state
+        if (audioContext && audioContext.state === 'closed') {
+            audioContext = null;
+        }
+        
+        // Get new media stream
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStream = stream; // Store the media stream reference
         
+        // Set up audio context
         if (!audioContext) {
-            setupAudioContext();
-        } else if (audioContext.state !== 'running') {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Resume audio context if it's suspended
+        if (audioContext.state === 'suspended') {
             await audioContext.resume();
         }
         
+        // Clean up existing microphone source if it exists
+        if (microphone) {
+            try {
+                microphone.disconnect();
+            } catch (e) {
+                console.warn('Error disconnecting microphone:', e);
+            }
+            microphone = null;
+        }
+        
+        // Set up analyser if needed
+        if (!userAnalyser) {
+            userAnalyser = audioContext.createAnalyser();
+            userAnalyser.fftSize = 1024;
+            userAnalyser.smoothingTimeConstant = 0.6;
+        }
+        
+        // Create new microphone source and connect to analyser
         microphone = audioContext.createMediaStreamSource(stream);
         microphone.connect(userAnalyser);
         
@@ -589,7 +640,10 @@ async function startRecording() {
         // Start total interaction timing
         interactionStartTime = Date.now();
         
-        // Request microphone access
+        // Small delay to ensure resources are fully released
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Request microphone access (this will properly initialize all required components)
         const micAccess = await requestMicrophoneAccess();
         if (!micAccess) return;
         
@@ -760,3 +814,9 @@ function stopAiVoice() {
     });
     */
 }
+
+// Removed all streaming-related functions:
+// - toggleRealtimeMode()
+// - startStreaming()
+// - stopStreaming()
+// - sendAudioChunkToBackend()

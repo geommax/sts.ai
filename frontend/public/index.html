@@ -167,14 +167,11 @@
     <div id="notification-bar" class="notification-bar"></div>
     
     <div class="container mx-auto px-0 py-0 max-w-full h-full flex flex-col overflow-hidden">
-        <header class="flex items-center justify-center mb-1">
-            <h1 class="text-sm font-bold text-primary">sts-deepblue.ai.lab</h1>
-        </header>
-        
-        <main class="bg-white dark:bg-gray-800 rounded-none shadow-none p-1 flex-grow flex flex-col">
-            <div class="flex flex-col lg:flex-row gap-4 flex-grow overflow-hidden mb-1">
+
+        <main class="bg-white dark:bg-gray-800 rounded-none shadow-none p-0 flex-grow flex flex-col">
+            <div class="flex flex-col lg:flex-row gap-px flex-grow overflow-hidden mb-px">
                 <!-- Speech to Speech Inference Widget -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-3 flex flex-col w-full lg:w-96 flex-shrink-0" style="height: calc(100vh - 190px);">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-2 flex flex-col w-full lg:w-96 flex-shrink-0 border-r border-gray-300 dark:border-gray-600" style="height: calc(100vh - 100px);">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center">
                             <i class="fas fa-headset text-primary mr-2"></i>
@@ -184,14 +181,7 @@
                         <div class="flex items-center">
                             <span class="text-xs font-medium mr-1">Status:</span>
                             <span class="text-xs font-medium text-success" id="stt-status">Ready</span>
-                            <div class="flex items-center ml-2">
-                                <span class="api-status-indicator api-status-disconnected" id="api-status-indicator"></span>
-                                <span class="text-xs font-medium opacity-75" id="api-status-text">Disconnected</span>
-                            </div>
                         </div>
-                    </div>
-                    <div class="text-xs text-gray-500 mb-3 italic">
-                        Your voice will be played back after stopping recording
                     </div>
                     
                     <!-- User Speech Waveform -->
@@ -248,7 +238,7 @@
                 </div>
                 
                 <!-- Text to Text Inference Widget - Main Section -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-3 flex flex-col flex-grow overflow-hidden" style="height: calc(100vh - 190px);">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-2 flex flex-col flex-grow overflow-hidden" style="height: calc(100vh - 100px);">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center">
                             <i class="fas fa-comment-alt text-primary mr-2"></i>
@@ -256,17 +246,17 @@
                             <span class="text-xs text-gray-500 ml-1">(Text-to-Text)</span>
                         </div>
                         <div class="flex space-x-2">
-                            <button id="export-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1.5 rounded-md transition duration-300 focus:outline-none focus:ring-2">
+                            <button id="export-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1 rounded-md transition duration-300 focus:outline-none focus:ring-2">
                                 <i class="fas fa-download text-sm"></i>
                             </button>
-                            <button id="clear-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1.5 rounded-md transition duration-300 focus:outline-none focus:ring-2">
+                            <button id="clear-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1 rounded-md transition duration-300 focus:outline-none focus:ring-2">
                                 <i class="fas fa-trash-alt text-sm"></i>
                             </button>
                         </div>
                     </div>
                     
                     <!-- Combined Messages Container -->
-                    <div id="chat-container" class="bg-white dark:bg-gray-800 rounded-none p-2 flex-grow overflow-y-auto flex flex-col space-y-2" style="height: calc(100vh - 260px);">
+                    <div id="chat-container" class="bg-white dark:bg-gray-800 rounded-none p-1 flex-grow overflow-y-auto flex flex-col space-y-1" style="height: calc(100vh - 160px);">
                         <div class="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                             <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 mb-4">
                                 <div class="text-xl font-bold text-primary mb-2">sts-deepblue.ai.lab</div>
@@ -277,7 +267,7 @@
                     </div>
                     
                     <!-- Chat Input Area -->
-                    <div class="mt-2 flex items-center space-x-1">
+                    <div class="mt-1 flex items-center space-x-1">
                         <label for="user-input" class="sr-only">Type your message</label>
                         <input id="user-input" type="text" placeholder="Type your message..." 
                             class="flex-grow px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" />
@@ -289,16 +279,10 @@
             </div>
             
             <!-- Latency Metrics Widget - Positioned at the bottom -->
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-3 flex flex-col w-full mt-1 flex-shrink-0" style="min-height: 90px;">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center">
-                        <i class="fas fa-tachometer-alt text-primary mr-2"></i>
-                        <h2 class="font-semibold">Latency Metrics</h2>
-                    </div>
-                </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-3 flex flex-col w-full mt-px flex-shrink-0 border-t border-gray-300 dark:border-gray-600" style="min-height: 80px;">
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 flex-grow">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 flex-grow">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium">Total Response Time</span>
                             <span id="total-latency" class="text-sm font-mono">0ms</span>
@@ -308,7 +292,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium">ASR/STT Time</span>
                             <span id="stt-latency" class="text-sm font-mono">0ms</span>
@@ -318,7 +302,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium">sLLM Inference</span>
                             <span id="llm-latency" class="text-sm font-mono">0ms</span>
@@ -328,7 +312,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium">sTTS Start Delay</span>
                             <span id="tts-latency" class="text-sm font-mono">0ms</span>
@@ -339,8 +323,9 @@
                     </div>
                 </div>
                 
-                <div class="mt-4 text-xs text-gray-500 italic">
-                    Latency metrics update in real-time during interactions
+                <div class="mt-2 flex justify-between items-center text-xs text-gray-500 italic">
+                    <div>deepblue.st.ai</div>
+                    <div>Latency metrics update in real-time during interactions</div>
                 </div>
             </div>
         </main>

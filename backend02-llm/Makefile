@@ -17,17 +17,17 @@ help:
 # Install dependencies
 .PHONY: install
 install:
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 
 # Run the server locally (simulation mode)
 .PHONY: run
 run:
-	python src/server.py
+	python3 src/server.py
 
 # Run the server with Ollama integration
 .PHONY: run-ollama
 run-ollama:
-	USE_OLLAMA=true python src/server.py
+	USE_OLLAMA=true python3 src/server.py
 
 # Run tests
 .PHONY: test
@@ -37,13 +37,13 @@ test:
 # Test Ollama integration
 .PHONY: test-ollama
 test-ollama:
-	python test_ollama.py
+	python3 test_ollama.py
 
 # Install development dependencies
 .PHONY: install-dev
 install-dev:
-	pip install -r requirements.txt
-	pip install pytest black flake8
+	pip3 install -r requirements.txt
+	pip3 install pytest black flake8
 
 # Format code
 .PHONY: format
