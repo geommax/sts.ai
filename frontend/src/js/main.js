@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Show welcome message
     setTimeout(() => {
-        addMessage("Hello! I'm your AI assistant. Type a message or click the mic to speak.");
+        addMessage("Hello! I'm your AI assistant. Type a message or click the mic to speak.", false, 0, new Date());
     }, 500);
 });
 
@@ -222,7 +222,7 @@ function addMessage(text, isUser = false, llmTime = 0, timestamp = null) {
     }
     
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message-animation mb-3 p-3 rounded-lg ${isUser ? 'bg-blue-100 dark:bg-blue-900 ml-4' : 'bg-gray-100 dark:bg-gray-700 mr-4'}`;
+    messageDiv.className = `message-animation mb-3 p-3 rounded-lg ${isUser ? 'bg-blue-100 dark:bg-blue-900 mr-4 w-[70%] ml-auto' : 'bg-gray-100 dark:bg-gray-700 ml-4 w-[70%]'}`;
     messageDiv.innerHTML = `
         <div class="flex items-start">
             <div class="flex-shrink-0 mr-2 mt-1">
@@ -325,7 +325,7 @@ function showTypingIndicator() {
     
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
-    typingDiv.className = 'message-animation mb-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 mr-4';
+    typingDiv.className = 'message-animation mb-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 ml-4 w-[70%]';
     typingDiv.innerHTML = `
         <div class="flex items-start">
             <div class="flex-shrink-0 mr-2 mt-1">

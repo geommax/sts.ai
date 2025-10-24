@@ -47,6 +47,9 @@ This project implements a three-tier Conversational AI system with:
 - Python/Flask application
 - Handles language model processing
 - Runs on port 5002
+- Supports Ollama for local LLM inference
+- Simulation mode for development
+- Health check and monitoring endpoints
 
 ## Frontend Features
 
@@ -133,7 +136,7 @@ curl http://localhost:5001/chat/history/test_user
 ## Next Steps
 
 - Implement actual STT/TTS functionality in backend01
-- Integrate a real LLM in backend02
+- Complete Ollama integration in backend02
 - Add authentication and security features
 - Implement real-time audio processing
 - Add more API providers and services
