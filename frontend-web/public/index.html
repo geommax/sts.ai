@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Material Symbols Outlined font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=communication" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2b5dbd',
+                        success: '#28a745',
+                        warning: '#ffc107',
+                        danger: '#dc3545',
+                        dark: '#1a202c',
+                    },
+                    animation: {
+                        'pulse-recording': 'pulse 1.5s cubic-bezier(0.4, 0.0, 0.6, 1.0) infinite',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Prevent scrolling */
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Dark mode scrollbars */
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Animation for typing indicator */
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .typing-dot {
+            animation: blink 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        /* Message transition animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-animation {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        /* Waveform visualizer styles */
+        .waveform-container {
+            position: relative;
+            height: 40px;
+            width: 100%;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .waveform-line {
+            stroke-linecap: round;
+            transition: stroke 0.2s ease, opacity 0.2s ease;
+        }
+
+        .dark .waveform-container {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Pulse animation for "Speaking" status */
+        @keyframes statusPulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .status-active {
+            animation: statusPulse 1.5s infinite;
+        }
+
+        /* API Status Indicator */
+        .api-status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .api-status-connected {
+            background-color: #28a745;
+            box-shadow: 0 0 5px #28a745;
+        }
+
+        .api-status-disconnected {
+            background-color: #dc3545;
+        }
+
+        .api-status-connecting {
+            background-color: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Notification bar */
+        .notification-bar {
+            position: fixed;
+            top: 3rem;
+            right: 1rem;
+            z-index: 1000;
+            max-width: 300px;
+            width: 100%;
+        }
+
+        /* Markdown rendering styles (README-like) */
+        .markdown-body {
+            font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            color: inherit;
+            line-height: 1.6;
+        }
+
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: .5rem;
+        }
+
+        .markdown-body pre {
+            background: rgba(0,0,0,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .markdown-body code {
+            background: rgba(27,31,35,0.05);
+            padding: .2em .4em;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+            font-size: .9em;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid rgba(0,0,0,0.08);
+            margin: 0;
+            padding-left: 12px;
+            color: rgba(0,0,0,0.7);
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 1.2rem;
+            margin-top: 0.4rem;
+            margin-bottom: 0.4rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 h-screen overflow-hidden">
+    <!-- Notification Bar -->
+    <div id="notification-bar" class="notification-bar"></div>
+    
+    <div class="container mx-auto px-0 py-0 max-w-full h-full flex flex-col overflow-hidden">
+
+        <main class="bg-white dark:bg-gray-800 rounded-none shadow-none p-0 flex-grow flex flex-col">
+            <div class="flex flex-col lg:flex-row gap-px flex-grow overflow-hidden mb-px">
+                <!-- Speech to Speech Inference Widget -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-2 flex flex-col w-full lg:w-96 flex-shrink-0 border-r border-gray-300 dark:border-gray-600" style="height: calc(100vh - 100px);">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-headset text-primary mr-2"></i>
+                            <h2 class="font-semibold">STS</h2>
+                            <span class="text-xs text-gray-500 ml-1">(Speech-to-Speech)</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs font-medium mr-1">Status:</span>
+                            <span class="text-xs font-medium text-success" id="stt-status">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <!-- User Speech Waveform -->
+                    <div class="mb-3">
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <div class="flex items-center">
+                                <i class="fas fa-user text-primary mr-1"></i>
+                                <span>You</span>
+                            </div>
+                            <span id="user-audio-level" class="opacity-60">Idle</span>
+                        </div>
+                        <div class="h-10 bg-white dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1 relative">
+                            <div id="user-waveform" class="w-full h-full flex items-center justify-center">
+                                <!-- SVG Waveform for User -->
+                                <svg width="100%" height="100%" viewBox="0 0 100 20" preserveAspectRatio="none" id="user-waveform-svg">
+                                    <!-- Base flat line when idle -->
+                                    <path d="M0,10 L100,10" stroke="#2b5dbd" stroke-width="1" fill="none" opacity="0.5"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Assistant Speech Waveform -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <div class="flex items-center">
+                                <i class="fas fa-robot text-success mr-1"></i>
+                                <span>Assistant</span>
+                            </div>
+                            <span id="assistant-audio-level" class="opacity-60">Idle</span>
+                        </div>
+                        <div class="h-10 bg-white dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center p-1">
+                            <div id="assistant-waveform" class="w-full h-full flex items-center justify-center">
+                                <!-- SVG Waveform for Assistant -->
+                                <svg width="100%" height="100%" viewBox="0 0 100 20" preserveAspectRatio="none" id="assistant-waveform-svg">
+                                    <!-- Base flat line when idle -->
+                                    <path d="M0,10 L100,10" stroke="#28a745" stroke-width="1" fill="none" opacity="0.5"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Control button -->
+                    <div class="mt-auto grid grid-cols-2 gap-2">
+                        <button id="speech-toggle-btn" class="bg-primary hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-lg transition duration-300 flex items-center justify-center space-x-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                            <i class="fas fa-microphone mr-1"></i>
+                            <span class="text-sm">Start STS</span>
+                        </button>
+                        <button id="stop-ai-voice-btn" class="tooltip bg-warning hover:bg-yellow-500 text-white font-medium py-2 px-3 rounded-lg transition duration-300 flex items-center justify-center space-x-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 opacity-50" disabled>
+                            <i class="fas fa-volume-mute mr-1"></i>
+                            <span class="text-sm">Stop AI</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Text to Text Inference Widget - Main Section -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-2 flex flex-col flex-grow overflow-hidden" style="height: calc(100vh - 100px);">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-comment-alt text-primary mr-2"></i>
+                            <h2 class="font-semibold">TTT</h2>
+                            <span class="text-xs text-gray-500 ml-1">(Text-to-Text)</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="export-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1 rounded-md transition duration-300 focus:outline-none focus:ring-2">
+                                <i class="fas fa-download text-sm"></i>
+                            </button>
+                            <button id="clear-btn" class="tooltip bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 p-1 rounded-md transition duration-300 focus:outline-none focus:ring-2">
+                                <i class="fas fa-trash-alt text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Combined Messages Container -->
+                    <div id="chat-container" class="bg-white dark:bg-gray-800 rounded-none p-1 flex-grow overflow-y-auto flex flex-col space-y-1" style="height: calc(100vh - 160px);">
+                        <div class="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 mb-4">
+                                <div class="text-xl font-bold text-primary mb-2">sts-deepblue.ai.lab</div>
+                                <div class="text-center text-sm">Conversational AI Assistant</div>
+                            </div>
+                            <div class="text-sm">Messages will appear here</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input Area -->
+                    <div class="mt-1 flex items-center space-x-1">
+                        <label for="user-input" class="sr-only">Type your message</label>
+                        <input id="user-input" type="text" placeholder="Type your message..." 
+                            class="flex-grow px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" />
+                        <button id="send-btn" class="bg-primary hover:bg-blue-700 text-white p-2 rounded-lg transition duration-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Send message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <!-- Add Stop Generating button (initially hidden) -->
+                        <button id="stop-generating-btn" class="bg-danger hover:bg-red-700 text-white p-2 rounded-lg transition duration-300 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 hidden" aria-label="Stop generating">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Latency Metrics Widget - Positioned at the bottom -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-none p-3 flex flex-col w-full mt-px flex-shrink-0 border-t border-gray-300 dark:border-gray-600" style="min-height: 80px;">
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 flex-grow">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium">Total Response Time</span>
+                            <span id="total-latency" class="text-sm font-mono">0ms</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div id="total-latency-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium">ASR/STT Time</span>
+                            <span id="stt-latency" class="text-sm font-mono">0ms</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div id="stt-latency-bar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium">sLLM Inference</span>
+                            <span id="llm-latency" class="text-sm font-mono">0ms</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div id="llm-latency-bar" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium">sTTS Start Delay</span>
+                            <span id="tts-latency" class="text-sm font-mono">0ms</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div id="tts-latency-bar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-2 flex justify-between items-center text-xs text-gray-500 italic">
+                    <div>deepblue.st.ai</div>
+                    <div>Latency metrics update in real-time during interactions</div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Export Modal -->
+        <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-file-export text-primary mr-2"></i>
+                    <h3 class="text-lg font-semibold">Export TTT Log</h3>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label id="export-format-label" class="block text-sm font-medium mb-2">Choose Export Format</label>
+                        <div class="flex space-x-4" aria-labelledby="export-format-label">
+                            <label class="flex items-center">
+                                <input type="radio" id="export-format-txt" name="export-format" value="txt" checked class="mr-2">
+                                <span>Plain Text (.txt)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" id="export-format-json" name="export-format" value="json" class="mr-2">
+                                <span>JSON (.json)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button id="cancel-export" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition duration-200">Cancel</button>
+                        <button id="confirm-export" class="px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg transition duration-200">Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markdown & sanitization libraries for rendering assistant/user messages containing lists/code -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <script src="../src/js/main.js?v=1"></script>
+</body>
+</html>

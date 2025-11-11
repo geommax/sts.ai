@@ -1,0 +1,146 @@
+@startuml
+' Set A3 document size
+skinparam dpi 150
+skinparam pageMargin 20
+skinparam maxMessageSize 150
+
+' Document title
+title Conversational AI System - Application Workflows
+
+' Define colors
+skinparam backgroundColor #EEEEEE
+skinparam handwritten false
+skinparam sequence {
+    ArrowColor #000000
+    ActorBorderColor #000000
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+}
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+}
+skinparam note {
+    BackgroundColor #FFFFCC
+    BorderColor #000000
+}
+
+' =============================
+' 1. CLASS DIAGRAM
+' =============================
+package "Frontend" {
+    [User Interface] as UI
+    [JavaScript Client] as JSClient
+}
+
+package "Backend 01 - STT/TTS" {
+    [STT/TTS API] as STTAPI
+    [Vosk STT Engine] as Vosk
+    [Piper TTS Engine] as Piper
+    [Audio Processor] as AudioProc
+}
+
+package "Backend 02 - LLM" {
+    [LLM API] as LLMAPI
+    [Ollama Client] as Ollama
+    [Chat Manager] as ChatMgr
+}
+
+package "External Services" {
+    [Ollama Service] as OllamaSrv
+    [Vosk Model] as VoskModel
+    [Piper Model] as PiperModel
+}
+
+' Class relationships
+UI --> JSClient : uses
+JSClient --> STTAPI : HTTP requests
+JSClient --> LLMAPI : HTTP requests
+STTAPI --> Vosk : uses
+STTAPI --> Piper : uses
+STTAPI --> AudioProc : uses
+LLMAPI --> ChatMgr : uses
+LLMAPI --> Ollama : uses
+Ollama --> OllamaSrv : API calls
+Vosk --> VoskModel : loads
+Piper --> PiperModel : loads
+
+' =============================
+' 2. STATE DIAGRAM
+' =============================
+state "Application States" as AppState {
+    [*] --> Idle
+    Idle --> Recording : User clicks Start STS
+    Recording --> ProcessingAudio : Audio captured
+    ProcessingAudio --> GeneratingResponse : STT complete
+    GeneratingResponse --> SynthesizingVoice : LLM response ready
+    SynthesizingVoice --> PlayingVoice : TTS complete
+    PlayingVoice --> Idle : Playback finished
+    PlayingVoice --> Stopped : User clicks Stop AI
+    Recording --> Stopped : User clicks Stop AI
+    ProcessingAudio --> Stopped : User clicks Stop AI
+    GeneratingResponse --> Stopped : User clicks Stop AI
+    SynthesizingVoice --> Stopped : User clicks Stop AI
+    Stopped --> Idle : Reset
+}
+
+' =============================
+' 3. VOICE CHAT SEQUENCE
+' =============================
+actor User
+participant "UI" as UI
+participant "JS Client" as JS
+participant "STT/TTS API" as STT
+participant "LLM API" as LLM
+participant "Ollama" as OLLAMA
+
+User -> UI : Click Start STS
+UI -> JS : toggleRecording()
+JS -> STT : Start audio recording
+STT -> STT : Capture audio
+STT -> Vosk : Process audio
+Vosk --> STT : Return transcription
+STT -> JS : Send transcription
+JS -> UI : Display user text
+JS -> LLM : Send user text
+LLM -> OLLAMA : Generate response
+OLLAMA --> LLM : Return AI response
+LLM -> JS : Send AI response
+JS -> STT : Request TTS
+STT -> Piper : Generate speech
+Piper --> STT : Return audio
+STT --> JS : Return audio URL
+JS -> UI : Play audio + display text
+
+' =============================
+' 4. TEXT CHAT SEQUENCE
+' =============================
+User -> UI : Type message
+UI -> JS : handleTextMessage()
+JS -> LLM : Send user text
+LLM -> OLLAMA : Generate response
+OLLAMA --> LLM : Return AI response
+LLM --> JS : Send AI response
+JS -> UI : Display response
+
+' =============================
+' 5. API CALL WORKFLOWS
+' =============================
+package "API Endpoints" {
+    [POST /voice/process] as VoiceProcess
+    [GET /tts/{filename}] as GetTTS
+    [POST /voice/stop] as StopVoice
+    [POST /text/chat] as TextChat
+    [POST /generate] as Generate
+    [GET /chat/history] as ChatHistory
+}
+
+' API relationships
+JSClient --> VoiceProcess : Voice input
+STTAPI --> GetTTS : Serve audio files
+JSClient --> StopVoice : Stop playback
+JSClient --> TextChat : Text input
+LLMAPI --> Generate : LLM requests
+LLMAPI --> ChatHistory : Get history
+
+@enduml
